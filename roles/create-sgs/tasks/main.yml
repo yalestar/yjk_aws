@@ -1,0 +1,43 @@
+---  
+- name: Get VPC id
+  local_action:
+    module: vpc_lookup
+    region: "{{ region }}"
+    tags:
+      Name: staging_vpc
+  register: vpc
+
+- set_fact:
+    vpc_id: "{{ vpc.vpc_ids[0] }}"
+
+- name: aalsdkf
+  debug: msg="{{ vpc_id }}"
+
+- pause:
+    prompt: "Make sure org.foo.FooOverload exception is not present"
+
+- name: Create empty security group for webservers 
+  local_action:  
+    module: ec2_group    
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
+    name: "{{ prefix }}_sg_web"    
+    description: security group for webservers
+
+- name: Create empty security group for databases 
+  local_action:  
+    module: ec2_group    
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
+    name: "{{ prefix }}_sg_database"    
+    description: security group for databases
+
+- name: Create empty security group for NAT
+  local_action:  
+    module: ec2_group    
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
+    name: "{{ prefix }}_sg_nat"    
+    description: security group for NAT
+
+- include: sg_modify.yml

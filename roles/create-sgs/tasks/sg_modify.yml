@@ -1,0 +1,83 @@
+---  
+- name: Modify sg_web rules
+  ec2_group:
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
+    name: "{{ prefix }}_sg_web"    
+    description: security group for webservers
+    rules:
+      - proto: tcp  
+        from_port: 22  
+        to_port: 22  
+        cidr_ip: "{{ allowed_ip }}"  
+      - proto: tcp  
+        from_port: 80    
+        to_port: 80    
+        cidr_ip: 0.0.0.0/0    
+      - proto: tcp  
+        from_port: 443    
+        to_port: 443    
+        cidr_ip: 0.0.0.0/0
+    rules_egress:  
+      - proto: tcp
+        from_port: 3306
+        to_port: 3306  
+        group_name: "{{ prefix }}_sg_database"   
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
+
+- name: Modify sg_database rules 
+  ec2_group:
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
+    name: "{{ prefix }}_sg_database"    
+    description: security group for databases
+    rules:
+      - proto: tcp
+        from_port: 3306
+        to_port: 3306  
+        group_name: "{{ prefix }}_sg_web"
+    rules_egress:  
+      - proto: tcp  
+        from_port: 80    
+        to_port: 80    
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp  
+        from_port: 443    
+        to_port: 443    
+        cidr_ip: 0.0.0.0/0
+
+- name: Modify sg_nat rules
+  ec2_group:
+    region: "{{ region }}"
+    vpc_id: "{{ vpc_id }}"
+    name: "{{ prefix }}_sg_nat"    
+    description: security group for NAT
+    rules:
+      - proto: tcp  
+        from_port: 22  
+        to_port: 22  
+        cidr_ip: "{{ allowed_ip }}"  
+      - proto: tcp  
+        from_port: 80    
+        to_port: 80    
+        cidr_ip: "{{ private_subnet }}"    
+      - proto: tcp  
+        from_port: 443    
+        to_port: 443    
+        cidr_ip: "{{ private_subnet }}"
+    rules_egress:  
+      - proto: tcp  
+        from_port: 80    
+        to_port: 80    
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp  
+        from_port: 443    
+        to_port: 443    
+        cidr_ip: 0.0.0.0/0

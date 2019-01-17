@@ -1,0 +1,24 @@
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    name: staging_vpc
+
+  tasks:
+    - name: Get VPC id
+      local_action:
+        module: vpc_lookup
+        region: "{{ region }}"
+        tags:
+          Name: staging_vpc
+      register: vpc
+
+    - name: Delete VPC
+      local_action:
+        module: ec2_vpc
+        region: "{{ region }}"
+        state: absent
+        vpc_id: "{{ item }}"
+        wait: yes
+        resource_tags: '{"Name":"{{ prefix }}_vpc"}'
+      with_items: vpc.vpc_ids
