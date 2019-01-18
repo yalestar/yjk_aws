@@ -5,15 +5,8 @@
   roles:
     - create-vpc 
     - create-sgs 
-    # - aws-setup-iam-roles-policies
-    # - aws-setup-ami
-    # - aws-setup-s3
-    # - aws-setup-vpc
-    # - aws-setup-security-groups
-    # - aws-setup-iam-server-certs
-    # - aws-setup-elb
-    # - aws-ec2-launch
-    # - aws-setup-cross-vpc-security-groups
+    - create-ec2
+    # - create-db-subnets 
   # tasks:
   #   - name: Wait for AMI from aws-setup-ami to become available
   #     local_action: "shell aws ec2 wait image-available --image-ids {{ ami_id }}"

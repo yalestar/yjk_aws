@@ -2,23 +2,67 @@
   connection: local
   gather_facts: no
   vars:
-    name: staging_vpc
+    vpc_name: staging_vpc
 
   tasks:
     - name: Get VPC id
-      local_action:
-        module: vpc_lookup
+      vpc_lookup:
         region: "{{ region }}"
         tags:
-          Name: staging_vpc
+          Name: "{{ vpc_name }}" 
       register: vpc
 
-    - name: Delete VPC
-      local_action:
-        module: ec2_vpc
+    - set_fact:
+        vpc_id: "{{ vpc.vpc_ids[0] }}"
+
+    - name: Fetch all routes for VPC
+      local_action: shell aws ec2 describe-route-tables --filter Name=vpc-id,Values="{{ vpc_id }}" | jq --raw-output '[.[][].RouteTableId]'
+      register: vpc_routes
+
+    - name: Empty routes in VPC routes
+      local_action: shell aws ec2 delete-route --route-table-id "{{ item }}"  --destination-cidr-block 0.0.0.0/0
+      with_items: "{{ vpc_routes.stdout | from_json }}"
+      ignore_errors: yes
+
+    - name: Delete VPC route table
+      ec2_vpc_route_table:
+        vpc_id: "{{ vpc_id }}"
         region: "{{ region }}"
         state: absent
-        vpc_id: "{{ item }}"
-        wait: yes
-        resource_tags: '{"Name":"{{ prefix }}_vpc"}'
-      with_items: vpc.vpc_ids
+    
+    - name: Fetch all subnets for VPC
+      local_action: shell aws ec2 describe-subnets --filter Name=vpc-id,Values="{{ vpc_id }}" | jq --raw-output '[.[][].SubnetId]'
+      register: vpc_subnets
+
+    
+    - name: Delete all VPC subnets
+      local_action: shell aws ec2 delete-subnet --subnet-id "{{ item }}"
+      with_items: "{{ vpc_subnets.stdout | from_json }}"
+      ignore_errors: yes
+
+    # - name: Fetch security group names for VPC
+    #   local_action: shell aws ec2 describe-security-groups --filters Name=vpc-id,Values="{{ vpc_id }}" --query 'SecurityGroups[*].GroupName'| grep -v default
+    #   register: vpc_security_group_names
+
+
+    # - name: Empty rules in security groups for VPC
+    #   ec2_group:
+    #     name: "{{ item }}"
+    #     region: "{{ region }}"
+    #     vpc_id: "{{ vpc_id }}"
+    #     purge_rules: true
+    #     purge_rules_egress: true
+    #     state: absent
+    #     description: 'fuckit'
+    #   with_items: "{{ vpc_security_group_names.stdout_lines }}"
+    #   # ignore_errors: yes
+
+      
+    # - name: Delete VPC
+    #   ec2_vpc:
+    #     region: "{{ region }}"
+    #     state: absent
+    #     vpc_id: "{{ item }}"
+    #     wait: yes
+    #     resource_tags: '{"Name":"{{ prefix }}_vpc"}'
+    #   with_items: vpc.vpc_ids

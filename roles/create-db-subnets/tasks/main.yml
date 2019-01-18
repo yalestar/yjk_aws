@@ -1,0 +1,10 @@
+---
+- name: Create subnet groups
+  rds_subnet_group:
+    name: dbsg2
+    state: present
+    region: "{{ region }}"
+    description: DB subnet group2
+    subnet:
+      - "{{ staging_subnet_private_0 }}"
+      - "{{ staging_subnet_private_1 }}"

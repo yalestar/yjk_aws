@@ -3,4 +3,5 @@ region: us-west-2
 prefix: staging
 az: us-west-2a
 ami_id: ami-036affea69a1101c9
-staging_vpc: staging_vpc
+vpc_name: staging_vpc
+ec2_instance_type: t2.micro
