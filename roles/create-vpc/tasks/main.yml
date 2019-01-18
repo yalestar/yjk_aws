@@ -11,7 +11,10 @@
         resource_tags: '{"Name":"{{ prefix }}_subnet_public"}'
       - cidr: 10.0.1.0/24
         az: "{{ az }}"
-        resource_tags: '{"Name":"{{ prefix }}_subnet_private"}' 
+        resource_tags: '{"Name":"{{ prefix }}_subnet_private_a"}' 
+      - cidr: 10.0.1.0/24
+        az: "{{ az }}"
+        resource_tags: '{"Name":"{{ prefix }}_subnet_private_b"}' 
     internet_gateway: yes
     route_tables:
       - subnets:
@@ -20,10 +23,3 @@
           - dest: 0.0.0.0/0
             gw: igw
   register: vpc
-
-- name: write vpc id to {{ prefix }}_vpc_info file
-  local_action: shell echo "{{ prefix }}"_vpc":" "{{ vpc.vpc_id }}" > "{{ prefix }}"_vpc_info
-            
-- name: write subnets id to {{ prefix }}_vpc_info file
-  local_action: shell echo "{{ item.resource_tags.Name }}"":" "{{ item.id }}" >> "{{ prefix }}"_vpc_info
-  with_items: vpc.subnets

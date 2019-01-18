@@ -6,7 +6,4 @@
     - create-vpc 
     - create-sgs 
     - create-ec2
-    # - create-db-subnets 
-  # tasks:
-  #   - name: Wait for AMI from aws-setup-ami to become available
-  #     local_action: "shell aws ec2 wait image-available --image-ids {{ ami_id }}"
+    - create-db-subnets 
